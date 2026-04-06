@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Video Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .input-section, .preview-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        textarea, select, input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .video-preview {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .download-section {
+            grid-column: span 2;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn { background: #4ecdc4; color: white; }
+        .play-btn:hover { background: #45b7ab; }
+        .stop-btn { background: #ff6b6b; color: white; }
+        .stop-btn:hover { background: #ff5252; }
+        .download-btn { background: #ffd93d; color: #333; }
+        .download-btn:hover { background: #ffca28; }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Text-to-Video Creator</h1>
+            <p>Convert your text into professional videos instantly!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="textInput">📝 Enter Your Text:</label>
+                    <textarea id="textInput" rows="8" placeholder="Type your message here... This will be converted to speech and animated in the video!"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label for="voiceSelect">🗣️ Voice:</label>
+                    <select id="voiceSelect"></select>
+                </div>
+
+                <div class="input-group">
+                    <label for="speedControl">⚡ Speed:</label>
+                    <input type="range" id="speedControl" min="0.5" max="2" step="0.1" value="1">
+                    <span id="speedValue">1.0x</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="bgColor">🎨 Background Color:</label>
+                    <input type="color" id="bgColor" value="#667eea">
+                </div>
+
+                <button class="btn" onclick="generateVideo()">✨ Generate Video</button>
+            </div>
+
+            <div class="preview-section">
+                <h3>🎥 Video Preview</h3>
+                <div class="video-preview" id="videoPreview">
+                    <div>Preview will appear here</div>
+                </div>
+                <div class="controls">
+                    <button class="control-btn play-btn" onclick="playPreview()">▶️ Play</button>
+                    <button class="control-btn stop-btn" onclick="stopPreview()">⏹️ Stop</button>
+                    <button class="control-btn download-btn" onclick="downloadVideo()" id="downloadBtn" disabled>💾 Download</button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your video...</p>
+            </div>
+        </div>
+
+        <div class="download-section" id="downloadSection" style="display: none;">
+            <h3>✅ Video Ready!</h3>
+            <p>Click below to download your video</p>
+            <button class="btn" onclick="downloadVideo()">⬇️ Download MP4 Video</button>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let canvas;
+        let ctx;
+        let animationId;
+        let currentVoice = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initVoices();
+            initCanvas();
+            setupEventListeners();
+        });
+
+        function initVoices() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const voices = speechSynthesis.getVoices();
+            
+            if (voices.length === 0) {
+                speechSynthesis.onvoiceschanged = initVoices;
+                return;
+            }
+
+            voiceSelect.innerHTML = '';
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+
+            currentVoice = voices[0];
+        }
+
+        function initCanvas() {
+            const preview = document.getElementById('videoPreview');
+            canvas = document.createElement('canvas');
+            canvas.width = 1280;
+            canvas.height = 720;
+            canvas.style.display = 'none';
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext('2d');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('speedControl').addEventListener('input', function(e) {
+                document.getElementById('speedValue').textContent = e.target.value + 'x';
+            });
+
+            document.getElementById('voiceSelect').addEventListener('change', function(e) {
+                const voices = speechSynthesis.getVoices();
+                currentVoice = voices[e.target.value];
+            });
+
+            document.getElementById('bgColor').addEventListener('change', function(e) {
+                document.getElementById('videoPreview').style.background = e.target.value;
+            });
+        }
+
+        async function generateVideo() {
+            const text = document.getElementById('textInput').value;
+            if (!text.trim()) {
+                alert('Please enter some text!');
+                return;
+            }
+
+            showLoading(true);
+            recordedChunks = [];
+
+            try {
+                // Create video with audio
+                await createVideoWithAudio(text);
+                showDownloadSection();
+            } catch (error) {
+                console.error('Error generating video:', error);
+                alert('Error generating video. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function createVideoWithAudio(text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280;
+            canvas.height = 720;
+            const ctx = canvas.getContext('2d');
+            const stream = canvas.captureStream(30); // 30 FPS
+
+            // Create audio context for TTS
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            utterance.voice = voices[voiceSelect.value];
+            utterance.rate = parseFloat(document.getElementById('speedControl').value);
+            
+            // Create MediaStream from audio
+            const audioContext = new AudioContext();
+            const destination = audioContext.createMediaStreamDestination();
+            const mediaElement = new Audio();
+            mediaElement.srcObject = destination.stream;
+            
+            utterance.onstart = () => {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) recordedChunks.push(event.data);
+                };
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('videoPreview').innerHTML = `
+                        <video id="previewVideo" src="${url}" controls autoplay style="width:100%;height:100%;object-fit:cover;"></video>
+                    `;
+                    document.getElementById('downloadBtn').disabled = false;
+                };
+                mediaRecorder.start();
+            };
+
+            // Animation loop
+            let startTime = null;
+            function animate(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+
+                // Clear canvas
+                ctx.fillStyle = document.getElementById('bgColor').value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Animated text
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 4;
+                ctx.font = 'bold 80px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const maxWidth = canvas.width - 100;
+                const words = text.split(' ');
+                let displayedText = '';
+                const progress = Math.min(elapsed / 5000, 1); // 5 second animation
+                
+                for (let i = 0; i < words.length; i++) {
+                    const testText = displayedText + (displayedText ? ' ' : '') + words[i];
+                    if (ctx.measureText(testText).width < maxWidth && i / words.length < progress) {
+                        displayedText = testText;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Animated effects
+                ctx.save();
+                ctx.shadowColor = 'rgba(255,255,255,0.5)';
+                ctx.shadowBlur = 20;
+                ctx.strokeText(displayedText, canvas.width/2, canvas.height/2);
+                ctx.shadowBlur = 10;
+                ctx.fillText(displayedText, canvas.width/2, canvas.height/2);
+                ctx.restore();
+
+                // Breathing animation
+                const pulse = Math.sin(elapsed * 0.01) * 10;
+                ctx.font = 'bold 40px Arial';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.fillText('✨ Generated by Text-to-Video', canvas.width/2, canvas.height - 100 + pulse);
+
+                animationId = requestAnimationFrame(animate);
+            }
+
+            speechSynthesis.speak(utterance);
+            animate();
+
+            // Stop everything after 10 seconds
+            setTimeout(() => {
+                cancelAnimationFrame(animationId);
+                speechSynthesis.cancel();
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, 10000);
+        }
+
+        function playPreview() {
+            const video = document.getElementById('previewVideo');
+            if (video) video.play();
+        }
+
+        function stopPreview() {
+            const video = document.getElementById('previewVideo');
+            if (video) video.pause();
+        }
+
+        function downloadVideo() {
+            const video = document.getElementById('previewVideo');
+            if (video) {
+                const link = document.createElement('a');
+                link.href = video.src;
+                link.download = 'text-to-video.webm';
+                link.click();
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.querySelector('.main-content').style.opacity = show ? '0.5' : '1';
+        }
+
+        function showDownloadSection() {
+            document.getElementById('downloadSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
